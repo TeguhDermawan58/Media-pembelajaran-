@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asesmen Diagnostik Siswa Lengkap</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F1F5F9; }
+        
+        /* Animations */
+        .fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(20px); }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+        
+        /* Radio Button Styling */
+        .radio-card:checked + div {
+            border-color: #4F46E5;
+            background-color: #EEF2FF;
+            color: #4338CA;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1);
+        }
+        .radio-card:checked + div .check-icon { opacity: 1; transform: scale(1); }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col overflow-x-hidden">
+
+    <nav class="bg-white/80 backdrop-blur-md fixed w-full z-50 border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-br from-indigo-600 to-purple-600 text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                    <i class="fa-solid fa-chart-pie text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-slate-900 leading-none">Diagnostik<span class="text-indigo-600">Siswa</span></h1>
+                    <span class="text-[10px] font-semibold text-slate-400 tracking-wider">SMK TEKNIK</span>
+                </div>
+            </div>
+            <div id="stepIndicator" class="hidden md:flex items-center gap-2 bg-slate-100 px-3 py-1 rounded-full text-xs font-semibold text-slate-600">
+                <span class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
+                <span>Proses Asesmen</span>
+            </div>
+        </div>
+    </nav>
+
+    <main id="app" class="flex-grow pt-24 pb-12 px-4 flex flex-col items-center justify-center min-h-screen">
+        </main>
+
+    <footer class="text-center py-6 text-slate-400 text-xs bg-white border-t border-slate-100">
+        <p>Instrumen Diagnostik Non-Kognitif & Kognitif © 2025</p>
+    </footer>
+
+    <script>
+        // --- 1. DATA KONFIGURASI (LENGKAP SESUAI PERMINTAAN) ---
+        const stepsData = [
+            // STEP 1: LATAR BELAKANG (10 Soal)
+            {
+                id: 'step1',
+                category: 'Latar Belakang',
+                title: 'Identitas & Lingkungan',
+                desc: 'Lengkapi data diri dan kondisi lingkungan belajar.',
+                type: 'input',
+                questions: [
+                    { id: 'nama', label: '1. Nama Lengkap', type: 'text', placeholder: 'Tulis nama lengkap...' },
+                    { id: 'kelas', label: '2. Kelas', type: 'text', placeholder: 'Contoh: X TSM 1' },
+                    { id: 'alamat', label: '3. Alamat Tempat Tinggal', type: 'text', placeholder: 'Alamat lengkap...' },
+                    { id: 'pekerjaan_ortu', label: '4. Pekerjaan Orang Tua/Wali', type: 'text', placeholder: 'Contoh: Wiraswasta' },
+                    { id: 'fasilitas', label: '5. Fasilitas Belajar di Rumah', type: 'select', options: ['Lengkap (Laptop & WiFi)', 'Cukup (HP & Kuota)', 'Kurang (HP sharing)', 'Tidak Ada'] },
+                    { id: 'jarak', label: '6. Jarak Rumah ke Sekolah', type: 'select', options: ['Dekat (< 1km)', 'Sedang (1-5km)', 'Jauh (> 5km)'] },
+                    { id: 'suku', label: '7. Suku/Etnis', type: 'text', placeholder: 'Contoh: Jawa, Sunda...' },
+                    { id: 'bahasa', label: '8. Bahasa Sehari-hari di Rumah', type: 'text', placeholder: 'Bahasa Indonesia/Daerah' },
+                    { id: 'budaya', label: '9. Ada kebiasaan/budaya yang mengharuskan libur belajar?', type: 'select', options: ['Tidak Ada', 'Ada (Jumat Kliwon, dll)', 'Ada (Acara Adat)'] },
+                    { id: 'pendamping', label: '10. Siapa pendamping belajar di rumah?', type: 'text', placeholder: 'Orang Tua / Kakak / Sendiri' }
+                ]
+            },
+            // STEP 2: PERKEMBANGAN FISIK (4 Soal)
+            {
+                id: 'step2',
+                category: 'Perkembangan Peserta Didik',
+                title: 'A. Perkembangan Fisik',
+                desc: 'Kondisi kesehatan dan kesiapan fisik praktik.',
+                type: 'likert',
+                questions: [
+                    { text: 'Saya merasa tubuh saya cukup bugar untuk melakukan praktik bengkel dalam posisi berdiri selama 2-3 jam.' },
+                    { text: 'Tangan saya stabil (tidak gemetar) saat memegang benda-benda kecil atau melakukan penyetelan presisi.' },
+                    { text: 'Saya tidak memiliki kendala pendengaran saat mendengarkan instruksi guru di lingkungan bengkel yang bising.' },
+                    { text: 'Saya selalu menjaga kondisi kesehatan (makan & istirahat) agar fokus menghadapi bahaya panas mesin saat praktik.' }
+                ]
+            },
+            // STEP 3: PERKEMBANGAN KOGNITIF (4 Soal)
+            {
+                id: 'step3',
+                category: 'Perkembangan Peserta Didik',
+                title: 'B. Perkembangan Kognitif (Gaya Belajar)',
+                desc: 'Cara Anda memproses informasi.',
+                type: 'likert',
+                questions: [
+                    { id: 'vis', text: 'Saya lebih cepat paham jika diberi contoh visual (gambar/video) daripada hanya membaca teks panjang.' }, // Indikator Visual
+                    { id: 'kin', text: 'Saya mampu mengingat langkah-langkah kerja (prosedur) dengan baik setelah mempraktikkannya satu kali.' }, // Indikator Kinestetik
+                    { text: 'Saya senang menganalisis sebab-akibat (misalnya: mencari tahu kenapa mesin bisa mati mendadak).' },
+                    { text: 'Saya senang mencari informasi tambahan tentang teknologi motor terbaru dari internet atau buku secara mandiri.' }
+                ]
+            },
+            // STEP 4: PERKEMBANGAN SOSIAL (4 Soal)
+            {
+                id: 'step4',
+                category: 'Perkembangan Peserta Didik',
+                title: 'C. Perkembangan Sosial-Emosional',
+                desc: 'Interaksi sosial dan pengelolaan emosi.',
+                type: 'likert',
+                questions: [
+                    { text: 'Saya berani mengakui kesalahan jika saya tidak sengaja merusak alat atau salah prosedur saat praktik.' },
+                    { text: 'Saya bisa bekerja sama dengan teman yang sifatnya berbeda dengan saya dalam satu kelompok.' },
+                    { text: 'Saya tidak mudah panik ketika menemui masalah sulit saat mengerjakan tugas.' },
+                    { text: 'Saya tidak malu bertanya atau meminta bantuan teman jika saya kesulitan memegang komponen yang sulit.' }
+                ]
+            },
+            // STEP 5: KESIAPAN KERJA - KEMAMPUAN AWAL (5 Soal)
+            {
+                id: 'step5',
+                category: 'Kesiapan Kerja',
+                title: 'Kemampuan Awal',
+                desc: 'Pengetahuan dasar tentang sistem pendinginan.',
+                type: 'boolean',
+                questions: [
+                    { text: 'Menurut pemahaman Kamu saat ini, apa fungsi utama sistem pendinginan mesin?' },
+                    { text: 'Apakah Kamu bisa membedakan secara fisik antara mesin pendingin udara (sirip) dan pendingin cairan (radiator)?' },
+                    { text: 'Apakah Kamu sudah terbiasa dan bisa menggunakan alat tangan (hand tools) dasar seperti obeng, tang, dan kunci pas?' },
+                    { text: 'Jika mesin motor baru saja dimatikan setelah perjalanan jauh, bolehkah kita langsung membuka tutup radiator?' },
+                    { text: 'Pernahkah Kamu melihat atau melakukan proses penggantian air radiator (coolant) sebelumnya?' }
+                ]
+            },
+            // STEP 6: KESIAPAN KERJA - MINAT (4 Soal)
+            {
+                id: 'step6',
+                category: 'Kesiapan Kerja',
+                title: 'Minat Otomotif',
+                desc: 'Seberapa besar ketertarikan Anda.',
+                type: 'likert',
+                questions: [
+                    { text: 'Saya sangat menyukai dunia otomotif dan sering mencari informasi tentang motor terbaru.' },
+                    { text: 'Saya senang melakukan bongkar pasang atau modifikasi ringan pada kendaraan di rumah.' },
+                    { text: 'Saya lebih tertarik pada pelajaran produktif (kejuruan) dibandingkan pelajaran umum.' },
+                    { text: 'Saya memiliki tokoh idola atau role model di bidang otomotif (pembalap, mekanik handal, youtuber otomotif).' }
+                ]
+            },
+            // STEP 7: KESIAPAN KERJA - MOTIVASI (5 Soal)
+            {
+                id: 'step7',
+                category: 'Kesiapan Kerja',
+                title: 'Motivasi Belajar',
+                desc: 'Dorongan untuk sukses di jurusan ini.',
+                type: 'likert',
+                questions: [
+                    { text: 'Saya masuk jurusan ini karena cita-cita pribadi ingin menjadi mekanik profesional/pengusaha bengkel.' },
+                    { text: 'Saya belajar giat agar bisa langsung bekerja dan membantu ekonomi keluarga setelah lulus.' },
+                    { text: 'Saya tetap semangat berangkat sekolah meskipun menghadapi kendala (cuaca/jarak/uang saku).' },
+                    { text: 'Dukungan orang tua membuat saya bersemangat untuk menuntaskan pendidikan di SMK ini.' },
+                    { text: 'Saya berkomitmen untuk selalu hadir tepat waktu dan mengikuti aturan keselamatan kerja di bengkel.' } 
+                ]
+            }
+        ];
+
+        // State Management
+        let currentStep = 0;
+        let answers = {};
+        const app = document.getElementById('app');
+
+        // --- 2. RENDER LANDING PAGE ---
+        function renderLanding() {
+            currentStep = 0;
+            answers = {};
+            document.getElementById('stepIndicator').classList.add('hidden');
+
+            app.innerHTML = `
+                <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center fade-in-up">
+                    <div class="order-2 lg:order-1">
+                        <div class="inline-block bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-full text-sm font-bold mb-6">
+                            👋 Halo Siswa SMK
+                        </div>
+                        <h2 class="text-4xl lg:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">Selamat Datang</h2>
+                        <div class="bg-slate-900 text-white p-8 rounded-3xl shadow-2xl mb-8 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500 rounded-full blur-3xl opacity-20 -mr-10 -mt-10"></div>
+                            <p class="text-gray-300 relative z-10 text-lg leading-relaxed">
+                                Asesmen ini bertujuan untuk memetakan profil belajar Anda melalui 3 aspek utama:
+                                <ul class="mt-4 space-y-3">
+                                    <li class="flex items-center gap-3"><span class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-indigo-400 font-bold">1</span><span class="font-semibold text-white">Latar Belakang</span></li>
+                                    <li class="flex items-center gap-3"><span class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-purple-400 font-bold">2</span><span class="font-semibold text-white">Perkembangan Peserta Didik</span></li>
+                                    <li class="flex items-center gap-3"><span class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-emerald-400 font-bold">3</span><span class="font-semibold text-white">Kesiapan Kerja</span></li>
+                                </ul>
+                            </p>
+                        </div>
+                        <button onclick="startApp()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold py-4 px-10 rounded-2xl shadow-xl shadow-indigo-200 transition-all transform hover:translate-y-[-2px] flex items-center justify-center gap-3">
+                            Mulai Sekarang <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <div class="order-1 lg:order-2 flex justify-center">
+                        <div class="relative w-full max-w-md aspect-square bg-white rounded-[3rem] shadow-2xl p-8 flex flex-col justify-center items-center border border-slate-100 rotate-3 hover:rotate-0 transition-transform duration-500">
+                            <img src="https://img.freepik.com/free-vector/exams-concept-illustration_114360-2754.jpg" alt="Assessment" class="w-full object-contain mb-4">
+                            <div class="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-lg flex items-center gap-3 animate-bounce">
+                                <div class="bg-green-100 p-2 rounded-full text-green-600"><i class="fa-solid fa-check"></i></div>
+                                <div>
+                                    <p class="text-xs text-gray-400 font-bold">HASIL INSTAN</p>
+                                    <p class="text-sm font-bold text-gray-800">Analisis Otomatis</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- 3. RENDER FORM STEP ---
+        function startApp() {
+            document.getElementById('stepIndicator').classList.remove('hidden');
+            renderStep();
+        }
+
+        function renderStep() {
+            const step = stepsData[currentStep];
+            const progress = ((currentStep + 1) / stepsData.length) * 100;
+            let htmlContent = '';
+
+            if (step.type === 'input') {
+                htmlContent = step.questions.map(q => `
+                    <div class="mb-5">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">${q.label}</label>
+                        ${q.type === 'select' ? `
+                            <div class="relative">
+                                <select name="${q.id}" class="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 py-3 px-4 pr-8 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" required>
+                                    <option value="" disabled selected>Pilih Jawaban...</option>
+                                    ${q.options.map(o => `<option value="${o}">${o}</option>`).join('')}
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500"><i class="fa-solid fa-chevron-down text-xs"></i></div>
+                            </div>
+                        ` : `
+                            <input type="text" name="${q.id}" placeholder="${q.placeholder}" class="w-full bg-slate-50 border border-slate-200 text-slate-700 py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" required>
+                        `}
+                    </div>
+                `).join('');
+            } else if (step.type === 'likert') {
+                htmlContent = step.questions.map((q, idx) => `
+                    <div class="mb-6 p-6 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                        <p class="font-bold text-slate-800 mb-4 text-sm leading-relaxed">${q.text}</p>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            ${['Sangat Tidak Setuju', 'Tidak Setuju', 'Setuju', 'Sangat Setuju'].map((lbl, val) => `
+                                <label class="cursor-pointer group relative">
+                                    <input type="radio" name="q_${currentStep}_${idx}" value="${val+1}" class="peer sr-only radio-card" required>
+                                    <div class="h-full py-3 px-2 rounded-xl border border-slate-200 text-center transition-all duration-200 hover:bg-slate-50 group-hover:border-indigo-300">
+                                        <div class="text-xl font-bold mb-1 opacity-40 group-hover:opacity-100 transition-opacity">${['😡','🙁','🙂','🤩'][val]}</div>
+                                        <div class="text-[9px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-slate-600">${lbl}</div>
+                                        <div class="check-icon absolute top-2 right-2 text-indigo-600 opacity-0 transform scale-50 transition-all duration-300"><i class="fa-solid fa-circle-check"></i></div>
+                                    </div>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            } else if (step.type === 'boolean') {
+                htmlContent = step.questions.map((q, idx) => `
+                    <div class="mb-4 p-5 bg-indigo-50/50 border border-indigo-100 rounded-2xl">
+                        <p class="font-semibold text-slate-800 mb-3 text-sm">${q.text}</p>
+                        <div class="flex gap-4">
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="q_${currentStep}_${idx}" value="1" class="peer sr-only radio-card" required>
+                                <div class="py-2 px-4 rounded-xl border border-slate-200 bg-white text-center font-bold text-slate-500 transition-all flex items-center justify-center gap-2 text-sm">
+                                    <i class="fa-solid fa-check"></i> Ya / Bisa / Tahu
+                                </div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="q_${currentStep}_${idx}" value="0" class="peer sr-only radio-card" required>
+                                <div class="py-2 px-4 rounded-xl border border-slate-200 bg-white text-center font-bold text-slate-500 transition-all flex items-center justify-center gap-2 text-sm">
+                                    <i class="fa-solid fa-xmark"></i> Tidak / Ragu
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            app.innerHTML = `
+                <div class="w-full max-w-2xl fade-in-up">
+                    <div class="flex justify-between items-end mb-4 px-1">
+                        <div>
+                            <span class="text-xs font-bold text-indigo-500 tracking-widest uppercase mb-1 block">${step.category}</span>
+                            <h2 class="text-2xl font-bold text-slate-800">${step.title}</h2>
+                        </div>
+                        <span class="text-2xl font-black text-slate-200">${currentStep + 1}<span class="text-base text-slate-300">/${stepsData.length}</span></span>
+                    </div>
+                    <div class="h-2 w-full bg-slate-200 rounded-full mb-8 overflow-hidden">
+                        <div class="h-full bg-indigo-600 rounded-full transition-all duration-500 ease-out" style="width: ${progress}%"></div>
+                    </div>
+                    <form id="stepForm" onsubmit="event.preventDefault(); nextStep()">
+                        <div class="bg-white rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-200/50 mb-8 border border-slate-100">
+                            <p class="text-slate-500 mb-8 text-sm">${step.desc}</p>
+                            ${htmlContent}
+                        </div>
+                        <div class="flex justify-between items-center">
+                            ${currentStep > 0 ? `<button type="button" onclick="prevStep()" class="text-slate-500 font-semibold hover:text-indigo-600 transition px-4 py-2">Kembali</button>` : `<div></div>`}
+                            <button type="submit" class="bg-slate-900 hover:bg-black text-white px-8 py-3 rounded-xl font-bold shadow-lg transform hover:-translate-y-1 transition-all flex items-center gap-2">
+                                ${currentStep === stepsData.length - 1 ? 'Selesai & Analisis' : 'Lanjut'} <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            restoreInputs();
+        }
+
+        // --- 4. NAVIGATION LOGIC ---
+        function nextStep() {
+            const form = document.getElementById('stepForm');
+            if (!form.checkValidity()) { form.reportValidity(); return; }
+            saveInputs();
+            if (currentStep < stepsData.length - 1) {
+                currentStep++;
+                renderStep();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                renderResult();
+            }
+        }
+        function prevStep() { if (currentStep > 0) { saveInputs(); currentStep--; renderStep(); } }
+        function saveInputs() { const formData = new FormData(document.getElementById('stepForm')); for (let [key, val] of formData.entries()) answers[key] = val; }
+        function restoreInputs() {
+            const inputs = document.querySelectorAll('input, select');
+            inputs.forEach(el => {
+                if (el.type === 'radio') { if (answers[el.name] === el.value) el.checked = true; } 
+                else { if (answers[el.name]) el.value = answers[el.name]; }
+            });
+        }
+
+        // --- 5. RESULT & PDF LOGIC ---
+        function renderResult() {
+            document.getElementById('stepIndicator').classList.add('hidden');
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+
+            // LOGIKA SKORING
+            // Gaya Belajar (Step Index 2): Q0=Visual, Q1=Kinestetik
+            let vScore = parseInt(answers['q_2_0'] || 0);
+            let kScore = parseInt(answers['q_2_1'] || 0);
+            let gayaBelajar = vScore > kScore ? "Visual (Gambar/Video)" : (kScore > vScore ? "Kinestetik (Praktik)" : "Campuran");
+
+            // Kesiapan Awal (Step Index 4): 5 pertanyaan
+            let rawAwal = 0;
+            for(let i=0; i<5; i++) if(answers[`q_4_${i}`] === '1') rawAwal++;
+            
+            let kesiapanStatus, kesiapanColor;
+            if (rawAwal >= 4) { kesiapanStatus = "Sangat Siap"; kesiapanColor = "text-green-600 bg-green-50"; }
+            else if (rawAwal >= 2) { kesiapanStatus = "Cukup Siap"; kesiapanColor = "text-yellow-600 bg-yellow-50"; }
+            else { kesiapanStatus = "Perlu Bimbingan"; kesiapanColor = "text-red-600 bg-red-50"; }
+
+            // Motivasi Rata-rata (Step Index 6)
+            let motivasiSum = 0;
+            for(let i=0; i<5; i++) motivasiSum += parseInt(answers[`q_6_${i}`] || 0);
+            let motivasiPct = Math.round((motivasiSum / 20) * 100);
+
+            const date = new Date().toLocaleDateString('id-ID', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
+
+            app.innerHTML = `
+                <div class="max-w-4xl w-full fade-in-up">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-slate-800">Hasil Diagnostik</h2>
+                        <div class="flex gap-3">
+                            <button onclick="downloadPDF()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-indigo-200 transition flex items-center gap-2 text-sm"><i class="fa-solid fa-file-pdf"></i> Simpan PDF</button>
+                            <button onclick="location.reload()" class="bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 px-4 py-2.5 rounded-xl font-semibold transition text-sm"><i class="fa-solid fa-rotate-right"></i></button>
+                        </div>
+                    </div>
+
+                    <div id="resultCard" class="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-slate-100 relative">
+                        <div class="bg-slate-900 text-white p-8 relative overflow-hidden">
+                            <div class="absolute right-0 top-0 w-64 h-64 bg-indigo-500 rounded-full blur-3xl opacity-20 translate-x-1/2 -translate-y-1/2"></div>
+                            <div class="relative z-10 flex justify-between items-start">
+                                <div>
+                                    <p class="text-indigo-300 font-bold tracking-wider text-xs mb-1 uppercase">Laporan Asesmen Diagnostik Katup</p>
+                                    <h1 class="text-3xl font-bold mb-2 capitalize">${answers.nama || 'Siswa'}</h1>
+                                    <p class="opacity-80 text-sm"><i class="fa-regular fa-calendar mr-2"></i>${date}</p>
+                                    <p class="opacity-80 text-sm mt-1"><i class="fa-solid fa-graduation-cap mr-2"></i>Kelas: ${answers.kelas || '-'}</p>
+                                </div>
+                                <div class="${kesiapanColor} px-4 py-2 rounded-lg border border-current">
+                                    <span class="block text-xs font-bold opacity-80 uppercase">Status Kesiapan</span>
+                                    <span class="text-xl font-bold">${kesiapanStatus}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-8 grid grid-cols-1 gap-8">
+                            
+                            <div>
+                                <h3 class="font-bold text-slate-800 flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                    <i class="fa-solid fa-house-user text-indigo-500"></i> I. Latar Belakang Siswa
+                                </h3>
+                                <div class="grid grid-cols-2 md:grid-cols-2 gap-x-6 gap-y-3 text-sm text-slate-600">
+                                    <div class="flex flex-col"><span class="text-xs text-slate-400">Alamat</span><span class="font-semibold">${answers.alamat || '-'}</span></div>
+                                    <div class="flex flex-col"><span class="text-xs text-slate-400">Pekerjaan Ortu</span><span class="font-semibold">${answers.pekerjaan_ortu || '-'}</span></div>
+                                    <div class="flex flex-col"><span class="text-xs text-slate-400">Fasilitas</span><span class="font-semibold">${answers.fasilitas}</span></div>
+                                    <div class="flex flex-col"><span class="text-xs text-slate-400">Jarak ke Sekolah</span><span class="font-semibold">${answers.jarak}</span></div>
+                                    <div class="flex flex-col"><span class="text-xs text-slate-400">Suku/Bahasa</span><span class="font-semibold">${answers.suku} / ${answers.bahasa}</span></div>
+                                    <div class="flex flex-col"><span class="text-xs text-slate-400">Pendamping</span><span class="font-semibold">${answers.pendamping}</span></div>
+                                    <div class="col-span-2 flex flex-col"><span class="text-xs text-slate-400">Kebiasaan Libur</span><span class="font-semibold">${answers.budaya}</span></div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div>
+                                    <h3 class="font-bold text-slate-800 flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                        <i class="fa-solid fa-brain text-purple-500"></i> II. Perkembangan Peserta Didik
+                                    </h3>
+                                    <div class="space-y-4">
+                                        <div class="bg-purple-50 p-3 rounded-xl border border-purple-100">
+                                            <span class="block text-xs text-purple-600 font-bold mb-1">GAYA BELAJAR DOMINAN</span>
+                                            <span class="text-lg font-bold text-slate-800">${gayaBelajar}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-sm border-b border-dashed pb-2">
+                                            <span class="text-slate-500">Fisik (Kebugaran)</span>
+                                            <span class="font-semibold text-slate-700">${parseInt(answers['q_1_0']) >= 3 ? 'Bugar/Siap' : 'Perlu Perhatian'}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-sm border-b border-dashed pb-2">
+                                            <span class="text-slate-500">Fisik (Motorik Halus)</span>
+                                            <span class="font-semibold text-slate-700">${parseInt(answers['q_1_1']) >= 3 ? 'Stabil' : 'Gemetar/Kurang'}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-sm">
+                                            <span class="text-slate-500">Sosial-Emosional</span>
+                                            <span class="font-semibold text-slate-700">${parseInt(answers['q_3_0']) >= 3 ? 'Berani Tanggung Jawab' : 'Perlu Dorongan'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h3 class="font-bold text-slate-800 flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                        <i class="fa-solid fa-briefcase text-emerald-500"></i> III. Kesiapan Kerja
+                                    </h3>
+                                    <div class="space-y-4">
+                                        <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <span class="text-xs text-emerald-600 font-bold">PENGETAHUAN AWAL</span>
+                                                <span class="text-xs font-bold text-emerald-600">${rawAwal}/5 Poin</span>
+                                            </div>
+                                            <div class="w-full bg-emerald-200 rounded-full h-2">
+                                                <div class="bg-emerald-600 h-2 rounded-full" style="width: ${(rawAwal/5)*100}%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex justify-between items-center text-sm">
+                                            <span class="text-slate-500">Motivasi Belajar</span>
+                                            <span class="font-bold text-slate-700">${motivasiPct}% (Tinggi)</span>
+                                        </div>
+                                        
+                                        <div class="mt-4 p-3 bg-slate-50 rounded-lg text-sm text-slate-600 italic border-l-4 border-indigo-500">
+                                            "Rekomendasi: ${kesiapanStatus === 'Perlu Bimbingan' ? 'Berikan matrikulasi alat & teori dasar.' : 'Siap praktik job sheet.'} Gunakan metode <b>${gayaBelajar.split(' ')[0]}</b>."
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 px-8 py-4 text-center border-t border-slate-100">
+                            <p class="text-[10px] text-slate-400 font-mono">ID: ${Date.now().toString().slice(-6)} • Asesmen Diagnostik SMK</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function downloadPDF() {
+            const element = document.getElementById('resultCard');
+            const button = document.querySelector('button[onclick="downloadPDF()"]');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+            button.disabled = true;
+            const opt = {
+                margin: [10, 10, 10, 10],
+                filename: `Hasil_Diagnostik_${answers.nama || 'Siswa'}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save().then(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+
+        renderLanding();
+    </script>
+</body>
+</html>

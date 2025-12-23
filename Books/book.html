@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Koleksi Modul Moto Edu</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="shortcut icon" href="../Images/Stuff/gear.png" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+
+<body>
+
+    <div class="container p-5 mt-2">
+
+        <div class="row d-flex justify-content-center">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="text" placeholder="Cari modul (contoh: pendingin)" class="form-control" id="inp">
+                    <div class="input-group-append">
+                        <button type="button" class="btn text-white" id="search">Cari</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row p-5 justify-content-center" id="pannel">
+            <h1 class="text-danger text-center" id="not_find_any_thing"></h1>
+
+            <div class="col-md-4 mt-5">
+                <div class="cards p-2">
+                    <img class="card-img-top" src="../Images/Book Cover/bookdin.png" alt="Pendinginan" style="height: 300px; object-fit: cover;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <h5 class="card-title">Pendingin Mesin</h5>
+                        </div>
+                        <p class="card-text" style="font-size: 14px;">Perawatan Radiator & Water Pump</p>
+                        <div class="d-flex justify-content-between">
+                            <div class="btn text-white text-center pl-2 pr-2">
+                                <a href="BookDetails/modul_pendinginan.html">Detail</a>
+                            </div>
+                            <div class="btn text-white text-center pl-2 pr-2 bg-success">
+                                <a href="../Images/Stuff/MODUL KOKTAHU.pdf" download>Unduh</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mt-5">
+                <div class="cards p-2">
+                    <img class="card-img-top" src="../Images/Book Cover/oli.png" alt="Pelumasan" style="height: 300px; object-fit: cover;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <h5 class="card-title">Sistem Pelumasan</h5>
+                        </div>
+                        <p class="card-text" style="font-size: 14px;">Pompa Oli & Filter</p>
+                        <div class="d-flex justify-content-between">
+                            <div class="btn text-white text-center pl-2 pr-2">
+                                <a href="BookDetails/modul_pelumasan.html">Detail</a>
+                            </div>
+                            <div class="btn text-white text-center pl-2 pr-2 bg-success">
+                                <a href="../Images/Stuff/MODUL KOKTAHU.pdf" download>Unduh</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mt-5">
+                <div class="cards p-2">
+                    <img class="card-img-top" src="../Images/Book Cover/katup.png" alt="Katup" style="height: 300px; object-fit: cover;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <h5 class="card-title">Mekanisme Katup</h5>
+                        </div>
+                        <p class="card-text" style="font-size: 14px;">Blok Silinder & Piston</p>
+                        <div class="d-flex justify-content-between">
+                            <div class="btn text-white text-center pl-2 pr-2">
+                                <a href="BookDetails/modul_katup.html">Detail</a>
+                            </div>
+                            <div class="btn text-white text-center pl-2 pr-2 bg-success">
+                                <a href="../Images/Stuff/MODUL KOKTAHU.pdf" download>Unduh</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="viewall">
+        <a href="../index.html" class="viewDetailButton">Kembali ke Home</a>
+    </div>
+
+    <br>
+    <script src="script.js"></script>
+
+</body>
+</html>

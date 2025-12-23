@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Modul: Sistem Pendingin - Moto Edu</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    
+    <style>
+        /* --- RESET & DASAR --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #2d2d2d; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+
+        /* --- LOADER --- */
+        #loader-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000; z-index: 9999;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            transition: opacity 1s ease-out;
+        }
+        #matrixCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .loading-text {
+            position: relative; z-index: 10000; color: #0F0;
+            font-family: 'Courier New', Courier, monospace; font-size: 24px; font-weight: bold;
+            background: rgba(0, 0, 0, 0.7); padding: 10px 20px;
+            border: 1px solid #0F0; box-shadow: 0 0 10px #0F0;
+        }
+
+        /* --- TOOLBAR --- */
+        .toolbar {
+            height: 50px; background-color: #1a1a1a; color: white;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; border-bottom: 1px solid #444; z-index: 300; position: relative;
+        }
+        .brand { font-weight: bold; color: #ffdb56; display: flex; align-items: center; gap: 15px; }
+        .tools { display: flex; gap: 10px; align-items: center; }
+        .tool-btn {
+            background: transparent; border: none; color: #ccc; cursor: pointer;
+            font-size: 18px; padding: 8px; transition: 0.3s; border-radius: 4px;
+            text-decoration: none; display: flex; align-items: center;
+        }
+        .tool-btn:hover { background: #444; color: white; }
+        .home-btn { color: #ffdb56; border: 1px solid #ffdb56; font-size: 14px; padding: 5px 15px; font-weight: bold; }
+        .home-btn:hover { background: #ffdb56; color: #000; }
+
+        /* --- CONTAINER UTAMA --- */
+        .main-container {
+            flex: 1; position: relative; overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+            background: url('https://www.transparenttextures.com/patterns/dark-leather.png'), #252525;
+            perspective: 1500px; /* Menambah efek 3D */
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            position: absolute; top: 0; left: 0; bottom: 0; width: 280px;
+            background-color: rgba(26, 26, 26, 0.95); border-right: 1px solid #444;
+            display: flex; flex-direction: column; z-index: 200;
+            transform: translateX(-100%); transition: transform 0.3s ease-in-out;
+            box-shadow: 5px 0 20px rgba(0,0,0,0.5); backdrop-filter: blur(5px);
+        }
+        .sidebar.show { transform: translateX(0); }
+        .sidebar-header { 
+            padding: 15px 20px; color: #ffdb56; border-bottom: 1px solid #444; 
+            font-size: 16px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;
+        }
+        .close-sidebar-btn { background: none; border: none; color: #aaa; cursor: pointer; font-size: 18px; }
+        .toc-list { overflow-y: auto; flex: 1; padding: 10px 0; }
+        .toc-item {
+            padding: 12px 20px; color: #ccc; cursor: pointer; font-size: 14px; border-bottom: 1px solid #333;
+            display: flex; justify-content: space-between; transition: 0.2s;
+        }
+        .toc-item:hover { background: #333; color: white; padding-left: 25px; }
+
+        /* --- BOOK WRAPPER (PENTING: Tidak boleh 100% width jika ingin efek buku melayang) --- */
+        .book-wrapper {
+            position: relative; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            /* Hapus transition transform di sini agar tidak konflik dengan library */
+        }
+        
+        /* Hilangkan box-shadow di container luar, biarkan library yang mengatur shadow per halaman */
+        .flip-book { 
+            /* Tidak perlu shadow di sini, library akan kasih shadow sendiri */
+        }
+
+        /* --- HALAMAN --- */
+        .page { 
+            background-color: white; 
+            overflow: hidden; 
+            /* Tambahkan shadow tipis per halaman agar terlihat seperti kertas tumpuk */
+            box-shadow: inset -1px 0 2px rgba(0,0,0,0.1); 
+        }
+        .page-content {
+            width: 100%; height: 100%; position: relative;
+        }
+        canvas.pdf-page-canvas {
+            width: 100%; height: 100%; object-fit: contain; display: block;
+        }
+
+        /* --- HOTSPOTS (TRANSPARAN) --- */
+        .hotspot-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
+        .hotspot { 
+            position: absolute; 
+            cursor: pointer; 
+            background: rgba(255, 255, 0, 0); 
+            transition: 0.2s;
+        }
+        .hotspot:hover { background: rgba(255, 219, 86, 0.2); border: 1px dashed rgba(255, 255, 0, 0.5); }
+
+        /* --- NAVIGASI PANAH SAMPING --- */
+        .nav-arrow {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            width: 50px; height: 50px; background: rgba(0,0,0,0.5); color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 50; border: 2px solid white; transition: 0.3s;
+        }
+        .nav-arrow:hover { background: #3090d4; transform: translateY(-50%) scale(1.1); }
+        .nav-prev { left: 20px; }
+        .nav-next { right: 20px; }
+    </style>
+</head>
+<body>
+    <div id="loader-container">
+        <canvas id="matrixCanvas"></canvas>
+        <div class="loading-text" id="loadingText">MEMUAT MODUL PDF... 0%</div>
+    </div>
+
+    <div class="toolbar">
+        <div class="brand">
+            <button class="tool-btn" id="btnToggleSidebar" title="Daftar Isi"><i class="fas fa-list"></i></button>
+            <span>MODUL PENDINGIN (BOOK MODE)</span>
+        </div>
+        <div class="tools">
+            <a href="../../index.html" class="tool-btn home-btn" title="Kembali ke Website">
+                <i class="fas fa-sign-out-alt"></i> &nbsp;Keluar
+            </a>
+            <div style="width:1px; height:20px; background:#444; margin:0 5px;"></div>
+            <button class="tool-btn" id="btnZoomOut"><i class="fas fa-minus"></i></button>
+            <button class="tool-btn" id="btnZoomIn"><i class="fas fa-plus"></i></button>
+            <button class="tool-btn" id="btnFullscreen"><i class="fas fa-expand"></i></button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                DAFTAR ISI
+                <button class="close-sidebar-btn" id="btnCloseSidebar"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="toc-list" id="tocList"></div>
+        </aside>
+
+        <div class="nav-arrow nav-prev" id="extPrevBtn"><i class="fas fa-chevron-left"></i></div>
+        <div class="nav-arrow nav-next" id="extNextBtn"><i class="fas fa-chevron-right"></i></div>
+
+        <div class="book-wrapper" id="bookWrapper">
+            <div id="flipbook" class="flip-book"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. CONFIG ---
+        const pdfUrl = 'Pendingin/pendingian.pdf'; 
+
+        // Judul Daftar Isi
+        const titles = {
+            0: "Cover Depan",
+            1: "Daftar Isi",
+            2: "Kata Pengantar",
+            3: "Petunjuk Penggunaan Modul",
+            4: "Peta Konsep",
+            5: "Uraian Materi 1: Definisi",
+            6: "Tujuan Pembelajaran",
+            7: "Prinsip Kerja Pendingin",
+            8: "Jenis Pendingin (Udara)",
+            9: "Jenis Pendingin (Cairan)",
+            10: "Jenis Pendingin (Cairan)",
+            11: "Jenis Liquid",
+            12: "Jenis Oil",
+            13: "Komponen: Radiator",
+            14: "Komponen: Tutup Radiator",
+            15: "Komponen: Water Pump & Thermostat",
+            16: "Komponen: Kipas & Selang",
+            17: "Mekanisme Perpindahan panas",
+            18: "Sirkulasi Air (Dingin)(Panas)",
+            19: "Perawatan Berkala ",
+            20: "Pemeriksaan Kebocoran",
+            21: "Prosedur Ganti Coolant",
+            22: "Diagnosa Kerusakan (Overheat)",
+            23: "Diagnosa Kerusakan (Overheat)",
+            24: "Daftar Pustaka"
+        };
+
+        // --- 2. MATRIX LOADER ---
+        const canvasMatrix = document.getElementById('matrixCanvas');
+        const ctxMatrix = canvasMatrix.getContext('2d');
+        canvasMatrix.width = window.innerWidth;
+        canvasMatrix.height = window.innerHeight;
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const fontSize = 16;
+        const columns = canvasMatrix.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctxMatrix.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctxMatrix.fillRect(0, 0, canvasMatrix.width, canvasMatrix.height);
+            ctxMatrix.fillStyle = '#0F0';
+            ctxMatrix.font = fontSize + 'px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                ctxMatrix.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvasMatrix.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        const matrixInterval = setInterval(drawMatrix, 30);
+        window.addEventListener('resize', () => {
+            canvasMatrix.width = window.innerWidth;
+            canvasMatrix.height = window.innerHeight;
+        });
+
+        // --- 3. LOGIKA PDF & FLIPBOOK ---
+        document.addEventListener('DOMContentLoaded', async function() {
+            const loadingText = document.getElementById('loadingText');
+            const loaderContainer = document.getElementById('loader-container');
+            const flipbookEl = document.getElementById('flipbook');
+            const tocListEl = document.getElementById('tocList');
+
+            try {
+                const loadingTask = pdfjsLib.getDocument({
+                    url: pdfUrl,
+                    disableRange: true,
+                    disableStream: true
+                });
+                
+                loadingTask.onProgress = function (progress) {
+                    if (progress.total > 0) {
+                        const percent = Math.floor((progress.loaded / progress.total) * 100);
+                        loadingText.innerText = `MENGUNDUH PDF... ${percent}%`;
+                    }
+                };
+
+                const pdf = await loadingTask.promise;
+                const totalPages = pdf.numPages;
+                loadingText.innerText = "MERENDER HALAMAN...";
+
+                // Loop Render Setiap Halaman
+                for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                    const pageIndex = pageNum - 1;
+
+                    // --- A. Render PDF ke Canvas ---
+                    const page = await pdf.getPage(pageNum);
+                    // Gunakan skala 1.5 agar tajam tapi tetap ringan
+                    const viewport = page.getViewport({ scale: 1.5 });
+
+                    const pageDiv = document.createElement('div');
+                    pageDiv.classList.add('page');
+                    // Efek Hard pada cover depan & belakang agar kaku seperti buku hardcover
+                    if(pageNum === 1 || pageNum === totalPages) pageDiv.setAttribute('data-density', 'hard');
+
+                    const canvas = document.createElement('canvas');
+                    canvas.classList.add('pdf-page-canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    const renderContext = { canvasContext: context, viewport: viewport };
+                    await page.render(renderContext).promise;
+
+                    // --- B. Buat Layer Hotspot ---
+                    const contentDiv = document.createElement('div');
+                    contentDiv.classList.add('page-content');
+                    contentDiv.appendChild(canvas);
+
+                    const hotspotLayer = document.createElement('div');
+                    hotspotLayer.classList.add('hotspot-layer');
+                    
+                    let hotspotsHtml = '';
+                    
+                    // Navigasi Umum
+                    if (pageNum > 1) { 
+                        hotspotsHtml += `<div class="hotspot" style="top:12%; left:8%; width:13%; height:10%;" onclick="flipToPage(0)" title="Ke Cover"></div>`;
+                        hotspotsHtml += `<div class="hotspot" style="top:90%; left:5%; width:15%; height:8%;" onclick="pageFlip.flipPrev()" title="Halaman Sebelumnya"></div>`;
+                        if (pageNum < totalPages) {
+                            hotspotsHtml += `<div class="hotspot" style="top:90%; left:80%; width:15%; height:8%;" onclick="pageFlip.flipNext()" title="Halaman Selanjutnya"></div>`;
+                        }
+                    }
+
+                    // Hotspot Halaman Daftar Isi
+                    if (pageNum === 2) {
+                        hotspotsHtml += `<div class="hotspot" style="top:33%; left:10%; width:20%; height:15%;" onclick="flipToPage(4)" title="Petunjuk Penggunaan"></div>`;
+                        hotspotsHtml += `<div class="hotspot" style="top:33%; left:40%; width:20%; height:15%;" onclick="flipToPage(5)" title="Tujuan Pembelajaran"></div>`;
+                        hotspotsHtml += `<div class="hotspot" style="top:33%; left:70%; width:20%; height:15%;" onclick="flipToPage(3)" title="Peta Konsep"></div>`;
+                        hotspotsHtml += `<div class="hotspot" style="top:55%; left:10%; width:20%; height:15%;" onclick="flipToPage(8)" title="Masuk Materi"></div>`;
+                        hotspotsHtml += `<div class="hotspot" style="top:55%; left:40%; width:20%; height:15%;" onclick="flipToPage(20)" title="Simulasi/Video"></div>`;
+                        hotspotsHtml += `<div class="hotspot" style="top:55%; left:70%; width:20%; height:15%;" onclick="flipToPage(24)" title="Evaluasi/Pustaka"></div>`;
+                    }
+
+                    hotspotLayer.innerHTML = hotspotsHtml;
+                    contentDiv.appendChild(hotspotLayer);
+                    pageDiv.appendChild(contentDiv);
+                    flipbookEl.appendChild(pageDiv);
+
+                    // --- C. Sidebar Daftar Isi ---
+                    if (titles[pageIndex]) {
+                        const tocItem = document.createElement('div');
+                        tocItem.className = 'toc-item';
+                        tocItem.innerHTML = `<span>${titles[pageIndex]}</span> <span style="font-size:11px; opacity:0.5">${pageNum}</span>`;
+                        tocItem.onclick = () => { window.flipToPage(pageIndex); toggleSidebar(false); };
+                        tocListEl.appendChild(tocItem);
+                    }
+
+                    const renderPercent = Math.floor((pageNum / totalPages) * 100);
+                    loadingText.innerText = `MENYIAPKAN BUKU... ${renderPercent}%`;
+                }
+
+                setTimeout(() => {
+                    clearInterval(matrixInterval);
+                    loaderContainer.style.opacity = '0';
+                    setTimeout(() => { loaderContainer.style.display = 'none'; }, 1000);
+                }, 500);
+
+                // --- 4. INIT FLIPBOOK (KONFIGURASI UTAMA DI SINI) ---
+                const pageFlip = new St.PageFlip(flipbookEl, {
+                    // UKURAN FIXED UNTUK 1 HALAMAN (BUKAN SPREAD/2 HALAMAN)
+                    // Sesuaikan width/height ini agar proporsinya pas dengan PDF Anda (misal A4 Portrait)
+                    width: 450,  
+                    height: 637,
+                    
+                    // PENTING: Gunakan 'fixed' agar buku tidak melar se-canvas
+                    size: "fixed", 
+                    
+                    // Agar tetap responsif di layar kecil, tapi tidak lebih besar dari ukuran aslinya di layar besar
+                    minWidth: 300, 
+                    maxWidth: 1000, 
+                    minHeight: 400, 
+                    maxHeight: 1200,
+                    
+                    // PENTING: Cover satu halaman, sisanya dua halaman
+                    showCover: true,
+                    
+                    // PENTING: False agar di desktop dia jadi 2 halaman (landscape mode)
+                    usePortrait: false, 
+                    
+                    maxShadowOpacity: 0.5, 
+                    mobileScrollSupport: false
+                });
+
+                pageFlip.loadFromHTML(document.querySelectorAll('.page'));
+
+                window.pageFlip = pageFlip;
+                window.flipToPage = (idx) => pageFlip.flip(idx);
+
+                document.getElementById('extPrevBtn').onclick = () => pageFlip.flipPrev();
+                document.getElementById('extNextBtn').onclick = () => pageFlip.flipNext();
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === "ArrowRight") pageFlip.flipNext();
+                    if (e.key === "ArrowLeft") pageFlip.flipPrev();
+                });
+
+            } catch (error) {
+                console.error("Error:", error);
+                loadingText.innerText = "GAGAL MEMUAT FILE PDF! PASTIKAN FILE ADA.";
+                loadingText.style.color = "red";
+            }
+        });
+
+        // --- 5. UI CONTROLS ---
+        const sidebar = document.getElementById('sidebar');
+        function toggleSidebar(show) {
+            if (show) sidebar.classList.add('show'); else sidebar.classList.remove('show');
+        }
+        document.getElementById('btnToggleSidebar').onclick = () => toggleSidebar(!sidebar.classList.contains('show'));
+        document.getElementById('btnCloseSidebar').onclick = () => toggleSidebar(false);
+
+        let currentZoom = 1;
+        const bookDiv = document.getElementById('flipbook');
+        
+        // Zoom Logic (Transform Scale)
+        document.getElementById('btnZoomIn').onclick = () => {
+            if (currentZoom < 1.5) { currentZoom += 0.1; bookDiv.style.transform = `scale(${currentZoom})`; }
+        };
+        document.getElementById('btnZoomOut').onclick = () => {
+            if (currentZoom > 0.6) { currentZoom -= 0.1; bookDiv.style.transform = `scale(${currentZoom})`; }
+        };
+        document.getElementById('btnFullscreen').onclick = () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else if (document.exitFullscreen) document.exitFullscreen();
+        };
+    </script>
+</body>
+</html>

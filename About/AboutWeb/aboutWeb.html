@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="../../Images/Stuff/gear.png" type="image/x-icon">
+    <title>Tentang Moto Edu</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"/>
+</head>
+
+<body>
+
+    <section id="intro">
+      <div class="info">
+        <h1>Moto Edu ?</h1>
+        <p>
+          Moto Edu adalah platform media pembelajaran interaktif yang dikhususkan untuk materi <strong>Perawatan dan Perbaikan Mesin Sepeda Motor</strong>.
+          <br><br>
+          Kami menyajikan materi kompleks seperti mekanisme katup, sistem pelumasan, dan pendinginan dengan cara yang visual dan mudah dipahami, mendukung pendidikan vokasi yang modern.
+        </p>
+        <a href="#content" class="button explore">Jelajahi Fitur</a>
+      </div>
+      <div class="imgDiv">
+        <img class="imgLogo" src="../../Images/Stuff/gear.png" alt="Logo Moto Edu"/>
+      </div>
+    </section>
+
+    <section id="content">
+
+      <div class="card">
+        <img class="card-img" src="../../Images/Stuff/bengkel-home.jpg" />
+        <div class="title">
+          <h2>Beranda Bengkel</h2>
+        </div>
+        <div class="more">
+          <button class="modal-open" data-modal="modal1">Lihat Detail</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <img class="card-img" src="../../Images/Book Cover/mesin1.jpg" />
+        <div class="title">
+          <h2>Modul Materi</h2>
+        </div>
+        <div class="more">
+          <button class="modal-open" data-modal="modal3">Lihat Detail</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <img class="card-img" src="../../Images/Book Cover/piston.jpg" />
+        <div class="title">
+          <h2>Simulasi & Kuis</h2>
+        </div>
+        <div class="more">
+          <button class="modal-open" data-modal="modal4">Lihat Detail</button>
+        </div>
+      </div>
+
+      <div class="modal" id="modal1">
+        <div class="modal-content">
+          <div class="modal-header">
+            Beranda Bengkel<button class="modal-close">
+              <ion-icon class="close-icon" name="close-outline">X</ion-icon>
+            </button>
+          </div>
+          <div class="modal-body modal-one">
+            <img src="../../Images/Stuff/bengkel-home.jpg" alt="" />
+            <ul>
+              <li>Pusat navigasi utama menuju seluruh materi perawatan mesin.</li>
+              <li>Tampilan visual bengkel yang bersih dan modern.</li>
+              <li>Akses cepat ke materi populer seperti 'Penyetelan Katup'.</li>
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button class="button close-btn modal-close">Tutup</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal" id="modal3">
+        <div class="modal-content">
+          <div class="modal-header">
+            Modul Materi Mesin<button class="modal-close">
+              <ion-icon class="close-icon" name="close-outline">X</ion-icon>
+            </button>
+          </div>
+          <div class="modal-body">
+            <img src="../../Images/Book Cover/mesin1.jpg" alt="" />
+            <ul>
+              <li>
+                Materi lengkap mencakup: Mekanisme Katup, Blok Silinder, Sistem Pelumasan, dan Pendinginan.
+              </li>
+              <li>
+                Dilengkapi gambar teknik dan prosedur SOP standar bengkel resmi.
+              </li>
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button class="button close-btn modal-close">Tutup</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal" id="modal4">
+        <div class="modal-content">
+          <div class="modal-header">
+            Simulasi & Kuis<button class="modal-close">
+              <ion-icon class="close-icon" name="close-outline">X</ion-icon>
+            </button>
+          </div>
+          <div class="modal-body">
+            <img src="../../Images/Book Cover/piston.jpg" alt="" />
+            <ul>
+              <li>
+                Uji pemahaman Anda dengan kuis interaktif tentang diagnosa kerusakan mesin.
+              </li>
+              <li>
+                Mainkan 'Tebak Komponen' untuk menghafal nama-nama part mesin.
+              </li>
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button class="button close-btn modal-close">Tutup</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <footer>
+      <p>
+        Mari belajar teknik mesin dengan cara yang menyenangkan di "Moto Edu"!
+        <br>
+        ~ Tim Pengembang ~
+      </p>
+    </footer>
+
+    <div class="viewall">
+      <a href="../../index.html" class="viewDetailButton">Kembali ke Home</a>
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
